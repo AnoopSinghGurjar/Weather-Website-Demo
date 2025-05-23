@@ -1,5 +1,8 @@
-const API_KEY = 'your-openweathermap-api-key'; // Replace with your actual API key
-const DEMO_MODE = true; // Set to false when using real API key
+// const API_KEY = 'your-openweathermap-api-key'; // Replace with your actual API key
+const API_KEY = '1c3c7793907527875502baf7509da81f'; // Your actual API key
+const DEMO_MODE = false; // Use real API data
+
+// const DEMO_MODE = true; // Set to false when using real API key
 
 const elements = {
     cityInput: document.getElementById('cityInput'),
@@ -220,21 +223,74 @@ function displayForecast(forecastData) {
 }
 
 // API data fetching function
-async function fetchWeatherData(city) {
-    if (DEMO_MODE) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+// async function fetchWeatherData(city) {
+//     if (DEMO_MODE) {
+//         // Simulate API delay
+//         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const demoCity = demoData[city.toLowerCase()];
-        if (demoCity) {
-            return {
-                current: demoCity.current,
-                forecast: { list: demoCity.forecast }
-            };
+//         const demoCity = demoData[city.toLowerCase()];
+//         if (demoCity) {
+//             return {
+//                 current: demoCity.current,
+//                 forecast: { list: demoCity.forecast }
+//             };
+//         } else {
+//             throw new Error(`City "${city}" not found in demo data. Try: London, New York, Tokyo, Paris, or Sydney`);
+//         }
+//     }
+
+
+async function fetchWeatherData(city) {
+    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric`;
+
+    const [currentResponse, forecastResponse] = await Promise.all([
+        fetch(currentWeatherUrl),
+        fetch(forecastUrl)
+    ]);
+
+    if (!currentResponse.ok) {
+        if (currentResponse.status === 404) {
+            throw new Error('City not found. Please check the spelling and try again.');
+        } else if (currentResponse.status === 401) {
+            throw new Error('API key is invalid. Please check your API key.');
         } else {
-            throw new Error(`City "${city}" not found in demo data. Try: London, New York, Tokyo, Paris, or Sydney`);
+            throw new Error('Failed to fetch weather data. Please try again later.');
         }
     }
+
+    const currentData = await currentResponse.json();
+    const forecastData = await forecastResponse.json();
+
+    return {
+        current: currentData,
+        forecast: forecastData
+    };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Real API calls (uncomment when using actual API key)
     /*
@@ -264,7 +320,6 @@ async function fetchWeatherData(city) {
         forecast: forecastData
     };
     */
-}
 
 // Main search function
 async function searchWeather(city) {
